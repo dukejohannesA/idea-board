@@ -1,4 +1,5 @@
 import { getData, persist } from "@/lib/sync";
+import { uploadImageToDrive } from "@/lib/board.functions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -214,10 +215,17 @@ export function IdeaBoard({ initialBoardId }: { initialBoardId: string }) {
     let off = 0;
     for (const f of files.filter((f) => f.type.startsWith("image/"))) {
       try {
-        const src = await fileToDataUrl(f);
+        const base64 = await fileToDataUrl(f);
         const base = at ?? viewCenter();
-        addItem("image", { src, caption: f.name.replace(/\.[^.]+$/, "") }, { x: base.x + off, y: base.y + off });
+        // Show image immediately with base64, then replace with Drive URL
+        const it = addItem("image", { src: base64, caption: f.name.replace(/\.[^.]+$/, "") }, { x: base.x + off, y: base.y + off });
         off += 30;
+        // Upload to Google Drive in background
+        uploadImageToDrive({ data: { base64, fileName: `${it.id}-${f.name}` } })
+          .then(({ url }) => {
+            commit((prev) => prev.map((i) => (i.id === it.id ? { ...i, data: { ...i.data, src: url }, updatedAt: new Date().toISOString() } : i)));
+          })
+          .catch(() => setWarn("Image saved locally — Drive upload failed."));
       } catch {
         setWarn("Couldn't read that image.");
       }

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Board, Item } from "./board";
 import { boardToRow, check, db, itemToRow, rowToBoard, rowToItem } from "./board-db.server";
+import { uploadImage } from "./gdrive.server";
 
 const uuid = z.string().uuid();
 const boardSchema = z.object({ id: uuid, name: z.string().max(500), type: z.string().max(50) }).passthrough();
@@ -47,6 +48,16 @@ export const syncChanges = createServerFn({ method: "POST" })
     if (data.deleteItems.length) check(await sb.from("items").delete().in("id", data.deleteItems), "Delete items");
     if (data.deleteBoards.length) check(await sb.from("boards").delete().in("id", data.deleteBoards), "Delete boards");
     return { ok: true };
+  });
+
+/** Upload a base64 image to Google Drive, return the public URL. */
+export const uploadImageToDrive = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ base64: z.string().min(1), fileName: z.string().max(200).default("image.jpg") }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const url = await uploadImage(data.base64, data.fileName);
+    return { url };
   });
 
 export const finishLocalMigration = createServerFn({ method: "POST" }).handler(async () => {
