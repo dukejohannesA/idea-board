@@ -15,7 +15,6 @@ import {
   type ItemType,
   type TodoEntry,
 } from "@/lib/board";
-import { useLockApp } from "@/components/AccessGate";
 import { ItemCard } from "./ItemCard";
 import { Inspector } from "./Inspector";
 import { RichText } from "./RichText";
@@ -44,7 +43,6 @@ const inside = (p: { x: number; y: number }, r: Rect) => p.x >= r.x && p.x <= r.
 
 export function IdeaBoard({ initialBoardId }: { initialBoardId: string }) {
   const navigate = useNavigate();
-  const lockApp = useLockApp();
   const [loaded, setLoaded] = useState(false);
   const [boards, setBoards] = useState<Board[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -698,7 +696,6 @@ export function IdeaBoard({ initialBoardId }: { initialBoardId: string }) {
           <button className={tbtn} onClick={() => zoomAt(1.2)} aria-label="Zoom in">+</button>
           <button className={tbtn} onClick={fit}>Fit</button>
           <button className={tbtn} disabled title="Sharing is coming soon">Share</button>
-          <button className={tbtn} onClick={lockApp} title="Lock the app">🔒 Lock app</button>
         </div>
       </header>
 

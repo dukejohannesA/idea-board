@@ -1,7 +1,6 @@
 import { getData, persist as persistData } from "@/lib/sync";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useLockApp } from "@/components/AccessGate";
 import { NewBoardModal } from "@/components/board/IdeaBoard";
 import {
   BOARD_TYPES,
@@ -36,7 +35,6 @@ type Sort = "recent" | "name" | "created";
 
 function Home() {
   const navigate = useNavigate();
-  const lockApp = useLockApp();
   const [loaded, setLoaded] = useState(false);
   const [boards, setBoards] = useState<Board[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -122,12 +120,9 @@ function Home() {
           <span className="text-sm text-muted-foreground">
             {boards.length} boards · {totalItems} items
           </span>
-          <button onClick={lockApp} className="ml-auto rounded-full border px-3 py-2 text-sm hover:bg-accent">
-            🔒 Lock app
-          </button>
           <button
             onClick={() => setNewOpen(true)}
-            className=" rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow"
+            className="ml-auto rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow"
           >
             + New board
           </button>

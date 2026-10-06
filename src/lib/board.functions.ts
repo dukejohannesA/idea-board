@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Board, Item } from "./board";
-import { requireAccess } from "./access.server";
 import { boardToRow, check, db, itemToRow, rowToBoard, rowToItem } from "./board-db.server";
 
 const uuid = z.string().uuid();
@@ -10,7 +9,6 @@ const itemSchema = z.object({ id: uuid, boardId: uuid, type: z.string().max(50) 
 
 /** Everything on the server, plus whether the one-time browser import has happened. */
 export const loadBoardData = createServerFn({ method: "GET" }).handler(async () => {
-  await requireAccess();
   const sb = await db();
   const meta = await sb.from("app_meta").select("value").eq("key", "local_migration_complete").maybeSingle();
   check(meta, "Read migration flag");
@@ -41,8 +39,7 @@ const syncSchema = z.object({
 export const syncChanges = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => syncSchema.parse(d))
   .handler(async ({ data }) => {
-    await requireAccess();
-    const sb = await db();
+      const sb = await db();
     if (data.boards.length)
       check(await sb.from("boards").upsert((data.boards as unknown as Board[]).map(boardToRow)), "Save boards");
     if (data.items.length)
@@ -53,7 +50,6 @@ export const syncChanges = createServerFn({ method: "POST" })
   });
 
 export const finishLocalMigration = createServerFn({ method: "POST" }).handler(async () => {
-  await requireAccess();
   const sb = await db();
   check(
     await sb.from("app_meta").upsert({ key: "local_migration_complete", value: true, updated_at: new Date().toISOString() }),
